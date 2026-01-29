@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Converter Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.3s ease; }
+        .drop-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
+        .image-card { transition: transform 0.2s; }
+        .image-card:hover { transform: scale(1.02); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Image Converter Pro</h1>
+            <p class="text-slate-600 text-sm md:text-base">Konversi cepat antara PNG, JPEG, WebP, dan SVG dengan pratinjau langsung.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left Column: Settings & Upload -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <!-- Upload Zone -->
+                    <div id="dropZone" class="drop-zone rounded-xl p-10 text-center cursor-pointer mb-6">
+                        <input type="file" id="fileInput" class="hidden" accept="image/*">
+                        <div id="uploadPrompt">
+                            <div class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                            </div>
+                            <p class="text-lg font-semibold text-slate-700">Pilih atau Seret Foto</p>
+                            <p class="text-sm text-slate-400 mt-1">Mendukung JPEG, PNG, WEBP, SVG</p>
+                        </div>
+                        
+                        <!-- Preview Input -->
+                        <div id="previewContainer" class="hidden flex flex-col items-center">
+                            <img id="imagePreview" class="max-h-48 rounded-lg shadow-sm mb-3 object-contain border border-slate-100 bg-slate-50">
+                            <p id="fileName" class="text-sm font-bold text-slate-700 truncate max-w-xs"></p>
+                            <p id="fileSize" class="text-xs text-slate-500"></p>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div id="controls" class="hidden space-y-6 border-t pt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Format Tujuan</label>
+                                <select id="targetFormat" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="image/jpeg">JPEG (.jpg)</option>
+                                    <option value="image/png">PNG (.png)</option>
+                                    <option value="image/webp">WebP (.webp)</option>
+                                    <option value="image/svg+xml">SVG (.svg)</option>
+                                </select>
+                            </div>
+
+                            <div id="qualityContainer">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Kualitas: <span id="qualityVal" class="text-blue-600">80</span>%</label>
+                                <input type="range" id="qualityRange" min="1" max="100" value="80" class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
+                        </div>
+
+                        <button id="convertBtn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                            <span>Konversi Sekarang</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Result Preview -->
+            <div class="lg:col-span-5">
+                <div id="resultCard" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden sticky top-8">
+                    <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                            Hasil Konversi
+                        </h3>
+                    </div>
+                    <div class="p-6 text-center">
+                        <div class="bg-slate-100 rounded-xl p-4 mb-4 inline-block w-full">
+                            <img id="resultPreview" class="max-h-64 mx-auto rounded shadow-sm object-contain" alt="Pratinjau Hasil">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Ukuran Akhir</p>
+                                <p id="finalSize" class="text-lg font-bold text-slate-800">0 KB</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Format</p>
+                                <p id="finalFormat" class="text-lg font-bold text-slate-800">-</p>
+                            </div>
+                        </div>
+
+                        <a id="downloadBtn" href="#" class="w-full inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg shadow-green-100 gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download Gambar
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Empty State for Result -->
+                <div id="emptyResult" class="bg-slate-100/50 rounded-2xl border-2 border-dashed border-slate-200 h-full flex flex-col items-center justify-center p-12 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-sm">Hasil konversi akan muncul di sini</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="conversionCanvas" class="hidden"></canvas>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const imagePreview = document.getElementById('imagePreview');
+        const controls = document.getElementById('controls');
+        const qualityRange = document.getElementById('qualityRange');
+        const qualityVal = document.getElementById('qualityVal');
+        const convertBtn = document.getElementById('convertBtn');
+        const targetFormat = document.getElementById('targetFormat');
+        const resultCard = document.getElementById('resultCard');
+        const emptyResult = document.getElementById('emptyResult');
+        const resultPreview = document.getElementById('resultPreview');
+        const finalSizeText = document.getElementById('finalSize');
+        const finalFormatText = document.getElementById('finalFormat');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let currentFile = null;
+
+        // Interaction
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        qualityRange.addEventListener('input', (e) => {
+            qualityVal.textContent = e.target.value;
+        });
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            
+            currentFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatBytes(file.size);
+                
+                uploadPrompt.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+                controls.classList.remove('hidden');
+                
+                // Reset result
+                resultCard.classList.add('hidden');
+                emptyResult.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        convertBtn.addEventListener('click', () => {
+            if (!currentFile) return;
+
+            convertBtn.disabled = true;
+            convertBtn.innerHTML = '<span>Memproses...</span>';
+
+            const format = targetFormat.value;
+            const quality = qualityRange.value / 100;
+            const canvas = document.getElementById('conversionCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            const img = new Image();
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                if (format === 'image/svg+xml') {
+                    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">
+                        <image href="${imagePreview.src}" width="100%" height="100%"/>
+                    </svg>`;
+                    const blob = new Blob([svgContent], {type: 'image/svg+xml'});
+                    processBlob(blob, 'svg');
+                } else {
+                    canvas.toBlob((blob) => {
+                        const extension = format.split('/')[1].replace('jpeg', 'jpg');
+                        processBlob(blob, extension);
+                    }, format, quality);
+                }
+                
+                convertBtn.disabled = false;
+                convertBtn.innerHTML = `<span>Konversi Sekarang</span> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`;
+            };
+            img.src = imagePreview.src;
+        });
+
+        function processBlob(blob, extension) {
+            const url = URL.createObjectURL(blob);
+            
+            // Update UI
+            resultPreview.src = url;
+            finalSizeText.textContent = formatBytes(blob.size);
+            finalFormatText.textContent = extension.toUpperCase();
+            
+            downloadBtn.href = url;
+            downloadBtn.download = `converted-${Date.now()}.${extension}`;
+            
+            emptyResult.classList.add('hidden');
+            resultCard.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
+
