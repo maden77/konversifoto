@@ -28,16 +28,9 @@ jobs:
       
       - name: Build APK
         run: |
-          # Buat folder www
           mkdir -p www
-          
-          # Copy HTML ke www
           cp *.html www/index.html 2>/dev/null || echo "No HTML"
-          
-          # Buat config
           echo '{"appId":"com.fotocraft.studio","appName":"FotoCraft","webDir":"www"}' > capacitor.config.json
-          
-          # Build APK
           npx cap init FotoCraft com.fotocraft.studio --web-dir=www
           npx cap add android
           npx cap sync android
