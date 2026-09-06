@@ -1,4 +1,4 @@
-name: Deploy FotoCraft Studio to GitHub Pages
+name: Deploy FotoCraft Studio to GitHub
 
 on:
   # Jalankan workflow setiap kali ada push ke branch main / master
