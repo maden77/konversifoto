@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FotoCraft Studio - Multifungsi Editor Foto</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .canvas-bg-checker {
+            background-color: #1e293b;
+            background-image: linear-gradient(45deg, #0f172a 25%, transparent 25%), 
+                              linear-gradient(-45deg, #0f172a 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #0f172a 75%), 
+                              linear-gradient(-45deg, transparent 75%, #0f172a 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        /* Custom scrollbar for control panels */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight text-white flex items-center gap-2">
+                    FotoCraft Studio
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Multifungsi</span>
+                </h1>
+                <p class="text-xs text-slate-400">Ubah Ukuran, Icon, Thumbnail, Stiker & Konversi Foto</p>
+            </div>
+        </div>
+
+        <!-- Quick Top Actions -->
+        <div class="flex items-center space-x-2">
+            <button id="demoImgBtn" class="px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition flex items-center gap-1.5 border border-slate-600">
+                <i class="fa-solid fa-image text-indigo-400"></i>
+                <span>Gunakan Contoh</span>
+            </button>
+            <label for="imageInput" class="cursor-pointer px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition flex items-center gap-1.5 shadow-md hover:shadow-indigo-500/20">
+                <i class="fa-solid fa-upload"></i>
+                <span>Unggah Foto</span>
+                <input type="file" id="imageInput" accept="image/*" class="hidden">
+            </label>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+
+        <!-- Sidebar / Tools Selection Menu -->
+        <aside class="w-full md:w-64 bg-slate-800/80 border-b md:border-b-0 md:border-r border-slate-700 p-3 shrink-0 flex md:flex-col overflow-x-auto md:overflow-y-auto gap-2">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 hidden md:block mb-1">Pilih Tools</div>
+            
+            <button onclick="switchTab('resizer')" id="tab-resizer" class="tool-tab flex-1 md:flex-initial flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition text-left bg-indigo-600 text-white shadow-md">
+                <i class="fa-solid fa-expand text-sm w-5 text-center"></i>
+                <div class="whitespace-nowrap">
+                    <div class="font-semibold">Ukuran Kustom</div>
+                    <div class="text-[10px] opacity-80 hidden md:block">Resize px, %, & Rasio</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('icon')" id="tab-icon" class="tool-tab flex-1 md:flex-initial flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition text-left text-slate-300 hover:bg-slate-700/60 hover:text-white">
+                <i class="fa-solid fa-icons text-sm w-5 text-center text-emerald-400"></i>
+                <div class="whitespace-nowrap">
+                    <div class="font-semibold">Ubah ke Icon</div>
+                    <div class="text-[10px] opacity-80 hidden md:block">Favicon & App Icon</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('thumbnail')" id="tab-thumbnail" class="tool-tab flex-1 md:flex-initial flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition text-left text-slate-300 hover:bg-slate-700/60 hover:text-white">
+                <i class="fa-solid fa-photo-film text-sm w-5 text-center text-amber-400"></i>
+                <div class="whitespace-nowrap">
+                    <div class="font-semibold">Buat Thumbnail</div>
+                    <div class="text-[10px] opacity-80 hidden md:block">YT, IG, FB & Teks</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('sticker')" id="tab-sticker" class="tool-tab flex-1 md:flex-initial flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition text-left text-slate-300 hover:bg-slate-700/60 hover:text-white">
+                <i class="fa-solid fa-note-sticky text-sm w-5 text-center text-pink-400"></i>
+                <div class="whitespace-nowrap">
+                    <div class="font-semibold">Buat Stiker</div>
+                    <div class="text-[10px] opacity-80 hidden md:block">Garis Tepi & Shadow</div>
+                </div>
+            </button>
+
+            <button onclick="switchTab('converter')" id="tab-converter" class="tool-tab flex-1 md:flex-initial flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition text-left text-slate-300 hover:bg-slate-700/60 hover:text-white">
+                <i class="fa-solid fa-file-export text-sm w-5 text-center text-cyan-400"></i>
+                <div class="whitespace-nowrap">
+                    <div class="font-semibold">Format & Kompres</div>
+                    <div class="text-[10px] opacity-80 hidden md:block">PNG, JPG, WEBP</div>
+                </div>
+            </button>
+
+            <!-- Original Image Info Box -->
+            <div id="imageInfoBox" class="hidden md:flex flex-col mt-auto bg-slate-900/60 p-3 rounded-xl border border-slate-700/50 text-[11px] text-slate-400 gap-1.5">
+                <div class="font-semibold text-slate-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-indigo-400"></i> Info File Asli
+                </div>
+                <div class="flex justify-between"><span>Dimensi:</span> <span id="infoDimensions" class="text-slate-200 font-mono">-</span></div>
+                <div class="flex justify-between"><span>Ukuran:</span> <span id="infoFileSize" class="text-slate-200 font-mono">-</span></div>
+                <div class="flex justify-between"><span>Tipe:</span> <span id="infoFileType" class="text-slate-200 font-mono">-</span></div>
+            </div>
+        </aside>
+
+        <!-- Center/Right Work Area -->
+        <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+
+            <!-- Tool Options Panel -->
+            <div class="w-full md:w-80 bg-slate-800 border-b md:border-b-0 md:border-r border-slate-700 p-4 overflow-y-auto shrink-0 flex flex-col justify-between">
+                <div>
+                    <!-- PANEL 1: Ukuran Kustom (Resize) -->
+                    <div id="panel-resizer" class="tool-panel space-y-4">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-700 pb-2">
+                            <i class="fa-solid fa-expand text-indigo-400"></i> Pengaturan Ukuran
+                        </h2>
+
+                        <!-- Presets Dropdown -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Preset Ukuran Cepat</label>
+                            <select id="resizePreset" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <option value="custom">Kustom</option>
+                                <option value="50%">50% dari Asli</option>
+                                <option value="25%">25% dari Asli</option>
+                                <option value="1920x1080">Full HD (1920 x 1080)</option>
+                                <option value="1280x720">HD (1280 x 720)</option>
+                                <option value="800x600">Standard (800 x 600)</option>
+                            </select>
+                        </div>
+
+                        <!-- Width & Height Inputs -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Lebar (px)</label>
+                                <input type="number" id="resizeWidth" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Tinggi (px)</label>
+                                <input type="number" id="resizeHeight" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="aspectRatioLock" checked class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500">
+                            <label for="aspectRatioLock" class="text-xs text-slate-300 cursor-pointer">Kunci Rasio Aspek (Lock Ratio)</label>
+                        </div>
+
+                        <!-- Fit Mode -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Mode Skala (Fit Mode)</label>
+                            <select id="resizeFitMode" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                                <option value="stretch">Regangkan (Stretch)</option>
+                                <option value="contain">Muat Pas (Contain/Letterbox)</option>
+                                <option value="cover">Pangkas Pas (Cover/Crop)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2: Icon Generator -->
+                    <div id="panel-icon" class="tool-panel space-y-4 hidden">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-700 pb-2">
+                            <i class="fa-solid fa-icons text-emerald-400"></i> Pengaturan Icon
+                        </h2>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Ukuran Standard Icon</label>
+                            <div class="grid grid-cols-2 gap-2" id="iconSizesContainer">
+                                <button type="button" data-size="16" class="icon-size-btn border border-slate-700 bg-slate-900 py-1.5 px-2 rounded-lg text-xs text-slate-300 hover:border-emerald-500">16x16 (Favicon)</button>
+                                <button type="button" data-size="32" class="icon-size-btn border border-slate-700 bg-slate-900 py-1.5 px-2 rounded-lg text-xs text-slate-300 hover:border-emerald-500">32x32 (Browser)</button>
+                                <button type="button" data-size="64" class="icon-size-btn border border-slate-700 bg-slate-900 py-1.5 px-2 rounded-lg text-xs text-slate-300 hover:border-emerald-500">64x64 (Desktop)</button>
+                                <button type="button" data-size="128" class="icon-size-btn border border-slate-700 bg-slate-900 py-1.5 px-2 rounded-lg text-xs text-slate-300 hover:border-emerald-500">128x128 (App)</button>
+                                <button type="button" data-size="256" class="icon-size-btn border border-slate-700 bg-slate-900 py-1.5 px-2 rounded-lg text-xs text-slate-300 hover:border-emerald-500">256x256 (HD App)</button>
+                                <button type="button" data-size="512" class="icon-size-btn border border-emerald-500 bg-emerald-500/10 font-semibold py-1.5 px-2 rounded-lg text-xs text-emerald-300">512x512 (Vector)</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Bentuk Potongan Icon</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" id="iconShapeSquare" class="icon-shape-btn border border-emerald-500 bg-emerald-500/10 py-2 rounded-lg text-xs font-medium text-emerald-300 flex flex-col items-center gap-1">
+                                    <div class="w-4 h-4 bg-emerald-400"></div>
+                                    <span>Persegi</span>
+                                </button>
+                                <button type="button" id="iconShapeRounded" class="icon-shape-btn border border-slate-700 bg-slate-900 py-2 rounded-lg text-xs font-medium text-slate-300 flex flex-col items-center gap-1 hover:border-emerald-500">
+                                    <div class="w-4 h-4 bg-slate-400 rounded-sm"></div>
+                                    <span>Rounded</span>
+                                </button>
+                                <button type="button" id="iconShapeCircle" class="icon-shape-btn border border-slate-700 bg-slate-900 py-2 rounded-lg text-xs font-medium text-slate-300 flex flex-col items-center gap-1 hover:border-emerald-500">
+                                    <div class="w-4 h-4 bg-slate-400 rounded-full"></div>
+                                    <span>Lingkaran</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Latar Belakang (Jatuh Jika Transparan)</label>
+                            <input type="color" id="iconBgColor" value="#ffffff" class="w-full h-8 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer p-1">
+                        </div>
+                    </div>
+
+                    <!-- PANEL 3: Thumbnail Maker -->
+                    <div id="panel-thumbnail" class="tool-panel space-y-4 hidden">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-700 pb-2">
+                            <i class="fa-solid fa-photo-film text-amber-400"></i> Pengaturan Thumbnail
+                        </h2>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Platform Preset</label>
+                            <select id="thumbPreset" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                                <option value="1280x720">YouTube Thumbnail (16:9 - 1280x720)</option>
+                                <option value="1080x1080">Instagram Post (1:1 - 1080x1080)</option>
+                                <option value="1080x1920">Instagram Story / TikTok (9:16 - 1080x1920)</option>
+                                <option value="1200x630">Facebook Banner (1200x630)</option>
+                                <option value="1500x500">Twitter Header (1500x500)</option>
+                            </select>
+                        </div>
+
+                        <!-- Text Overlay Options -->
+                        <div class="space-y-2 border-t border-slate-700/60 pt-3">
+                            <label class="block text-xs font-semibold text-amber-400">Teks Overlay Header</label>
+                            <input type="text" id="thumbTextTitle" placeholder="Judul Thumbnail..." value="KONTEN KEREN SAYA" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-slate-400">Warna Teks</label>
+                                    <input type="color" id="thumbTextColor" value="#ffffff" class="w-full h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-400">Warna Banner Teks</label>
+                                    <input type="color" id="thumbTextBg" value="#e11d48" class="w-full h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer p-0.5">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Posisi Teks</label>
+                                <select id="thumbTextPos" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200">
+                                    <option value="bottom">Bawah Banner</option>
+                                    <option value="center">Tengah Banner</option>
+                                    <option value="top">Atas Banner</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Image Adjustments -->
+                        <div class="space-y-2 border-t border-slate-700/60 pt-3">
+                            <label class="block text-xs font-semibold text-slate-300">Filter Gambar</label>
+                            
+                            <div>
+                                <div class="flex justify-between text-[10px] text-slate-400"><span>Kecerahan</span> <span id="valBrightness">100%</span></div>
+                                <input type="range" id="filterBrightness" min="50" max="150" value="100" class="w-full accent-amber-500 h-1 bg-slate-700 rounded">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-[10px] text-slate-400"><span>Kontras</span> <span id="valContrast">100%</span></div>
+                                <input type="range" id="filterContrast" min="50" max="150" value="100" class="w-full accent-amber-500 h-1 bg-slate-700 rounded">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-[10px] text-slate-400"><span>Saturasi</span> <span id="valSaturation">100%</span></div>
+                                <input type="range" id="filterSaturation" min="0" max="200" value="100" class="w-full accent-amber-500 h-1 bg-slate-700 rounded">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 4: Sticker Maker -->
+                    <div id="panel-sticker" class="tool-panel space-y-4 hidden">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-700 pb-2">
+                            <i class="fa-solid fa-note-sticky text-pink-400"></i> Pengaturan Stiker
+                        </h2>
+
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                <span>Ketebalan Garis Tepi (Border)</span>
+                                <span id="valStickerBorder" class="font-mono text-pink-400">15px</span>
+                            </div>
+                            <input type="range" id="stickerBorderWidth" min="0" max="40" value="15" class="w-full accent-pink-500 h-1.5 bg-slate-700 rounded">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Warna Garis Tepi Stiker</label>
+                            <input type="color" id="stickerBorderColor" value="#ffffff" class="w-full h-8 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer p-1">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                <span>Efek Bayangan (Drop Shadow)</span>
+                                <span id="valStickerShadow" class="font-mono text-pink-400"> Sedang</span>
+                            </div>
+                            <input type="range" id="stickerShadowDepth" min="0" max="30" value="12" class="w-full accent-pink-500 h-1.5 bg-slate-700 rounded">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                <span>Kemiringan Rotasi Stiker</span>
+                                <span id="valStickerRotate" class="font-mono text-pink-400">-4°</span>
+                            </div>
+                            <input type="range" id="stickerRotation" min="-20" max="20" value="-4" class="w-full accent-pink-500 h-1.5 bg-slate-700 rounded">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Label Lencana Stiker (Opsional)</label>
+                            <input type="text" id="stickerBadgeText" placeholder="Contoh: NEW!, HOT, WOW!" value="COOL!" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-pink-500">
+                        </div>
+                    </div>
+
+                    <!-- PANEL 5: Format Converter & Compression -->
+                    <div id="panel-converter" class="tool-panel space-y-4 hidden">
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-700 pb-2">
+                            <i class="fa-solid fa-file-export text-cyan-400"></i> Format & Kompresi
+                        </h2>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Format Output File</label>
+                            <select id="exportFormat" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono">
+                                <option value="image/png">PNG (.png) - Kualitas Terbaik / Transparan</option>
+                                <option value="image/jpeg">JPEG (.jpg) - Ukuran File Kecil</option>
+                                <option value="image/webp">WEBP (.webp) - Format Modern Web</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-300 mb-1">
+                                <span>Kualitas Gambar (Kompresi)</span>
+                                <span id="valQuality" class="font-mono text-cyan-400">90%</span>
+                            </div>
+                            <input type="range" id="exportQuality" min="10" max="100" value="90" class="w-full accent-cyan-500 h-1.5 bg-slate-700 rounded">
+                            <p class="text-[10px] text-slate-400 mt-1">*Fitur kompresi kualitas hanya berlaku untuk JPEG dan WEBP.</p>
+                        </div>
+
+                        <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/80 text-xs text-slate-300 space-y-1">
+                            <div class="flex justify-between">
+                                <span>Perkiraan Ukuran File:</span>
+                                <span id="estFileSize" class="font-semibold text-cyan-300 font-mono">Menghitung...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Button Footer -->
+                <div class="mt-6 pt-4 border-t border-slate-700/80">
+                    <button id="downloadBtn" class="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-semibold text-xs rounded-xl shadow-lg hover:shadow-indigo-500/25 transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download text-sm"></i>
+                        <span id="downloadBtnText">Unduh Hasil Foto</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Preview Canvas Viewport -->
+            <div class="flex-1 bg-slate-950 canvas-bg-checker relative p-4 flex flex-col items-center justify-center overflow-auto min-h-[300px]">
+                
+                <!-- Floating Info Badge on Canvas -->
+                <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur border border-slate-700 px-3 py-1 rounded-full text-[11px] text-slate-300 flex items-center gap-2 shadow-md">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Live Preview:</span>
+                    <span id="previewDimensions" class="font-mono text-emerald-300">0 x 0 px</span>
+                </div>
+
+                <!-- Empty State Container -->
+                <div id="emptyState" class="flex flex-col items-center text-center max-w-sm p-6 bg-slate-900/90 border border-slate-700/80 rounded-2xl shadow-2xl backdrop-blur">
+                    <div class="w-16 h-16 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-2xl mb-3 border border-indigo-500/20">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-200 text-sm mb-1">Belum Ada Foto Dipilih</h3>
+                    <p class="text-xs text-slate-400 mb-4">Unggah foto dari perangkat Anda atau klik tombol contoh di bawah ini untuk memulai.</p>
+                    <button id="emptyDemoBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition shadow-md">
+                        Gunakan Foto Contoh
+                    </button>
+                </div>
+
+                <!-- Active Render Canvas -->
+                <canvas id="mainCanvas" class="max-w-full max-h-[80vh] shadow-2xl rounded-lg hidden transition-all border border-slate-700/50 object-contain"></canvas>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast Modal -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white border border-slate-700 px-4 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 z-50 pointer-events-none">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMsg" class="text-xs font-medium">Pesan Toast</span>
+    </div>
+
+    <script>
+        // State variables
+        let originalImage = null;
+        let activeTab = 'resizer';
+        let originalFileName = 'image';
+        let originalFileType = 'image/png';
+        let originalFileSize = 0;
+
+        // Custom parameters
+        let params = {
+            resize: { width: 0, height: 0, aspectLock: true, fitMode: 'stretch' },
+            icon: { size: 512, shape: 'square', bgColor: '#ffffff' },
+            thumbnail: { preset: '1280x720', title: 'KONTEN KEREN SAYA', textColor: '#ffffff', textBg: '#e11d48', textPos: 'bottom', brightness: 100, contrast: 100, saturation: 100 },
+            sticker: { borderWidth: 15, borderColor: '#ffffff', shadowDepth: 12, rotation: -4, badgeText: 'COOL!' },
+            converter: { format: 'image/png', quality: 0.9 }
+        };
+
+        // DOM elements
+        const imageInput = document.getElementById('imageInput');
+        const mainCanvas = document.getElementById('mainCanvas');
+        const ctx = mainCanvas.getContext('2d');
+        const emptyState = document.getElementById('emptyState');
+        const previewDimensions = document.getElementById('previewDimensions');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initEvents();
+        });
+
+        function initEvents() {
+            // File input listener
+            imageInput.addEventListener('change', handleFileSelect);
+
+            // Demo buttons
+            document.getElementById('demoImgBtn').addEventListener('click', loadDemoImage);
+            document.getElementById('emptyDemoBtn').addEventListener('click', loadDemoImage);
+
+            // Download event
+            downloadBtn.addEventListener('click', downloadResult);
+
+            // Resize tab controls
+            document.getElementById('resizeWidth').addEventListener('input', (e) => {
+                const w = parseInt(e.target.value) || 0;
+                params.resize.width = w;
+                if (params.resize.aspectLock && originalImage && originalImage.width > 0) {
+                    const ratio = originalImage.height / originalImage.width;
+                    const h = Math.round(w * ratio);
+                    params.resize.height = h;
+                    document.getElementById('resizeHeight').value = h;
+                }
+                render();
+            });
+
+            document.getElementById('resizeHeight').addEventListener('input', (e) => {
+                const h = parseInt(e.target.value) || 0;
+                params.resize.height = h;
+                if (params.resize.aspectLock && originalImage && originalImage.height > 0) {
+                    const ratio = originalImage.width / originalImage.height;
+                    const w = Math.round(h * ratio);
+                    params.resize.width = w;
+                    document.getElementById('resizeWidth').value = w;
+                }
+                render();
+            });
+
+            document.getElementById('aspectRatioLock').addEventListener('change', (e) => {
+                params.resize.aspectLock = e.target.checked;
+            });
+
+            document.getElementById('resizeFitMode').addEventListener('change', (e) => {
+                params.resize.fitMode = e.target.value;
+                render();
+            });
+
+            document.getElementById('resizePreset').addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (!originalImage) return;
+                
+                if (val === '50%') {
+                    params.resize.width = Math.round(originalImage.width * 0.5);
+                    params.resize.height = Math.round(originalImage.height * 0.5);
+                } else if (val === '25%') {
+                    params.resize.width = Math.round(originalImage.width * 0.25);
+                    params.resize.height = Math.round(originalImage.height * 0.25);
+                } else if (val.includes('x')) {
+                    const [w, h] = val.split('x').map(Number);
+                    params.resize.width = w;
+                    params.resize.height = h;
+                }
+                document.getElementById('resizeWidth').value = params.resize.width;
+                document.getElementById('resizeHeight').value = params.resize.height;
+                render();
+            });
+
+            // Icon size buttons
+            document.querySelectorAll('.icon-size-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.icon-size-btn').forEach(b => {
+                        b.classList.remove('border-emerald-500', 'bg-emerald-500/10', 'font-semibold', 'text-emerald-300');
+                        b.classList.add('border-slate-700', 'bg-slate-900', 'text-slate-300');
+                    });
+                    btn.classList.remove('border-slate-700', 'bg-slate-900', 'text-slate-300');
+                    btn.classList.add('border-emerald-500', 'bg-emerald-500/10', 'font-semibold', 'text-emerald-300');
+                    
+                    params.icon.size = parseInt(btn.dataset.size);
+                    render();
+                });
+            });
+
+            // Icon shapes
+            const shapeSquare = document.getElementById('iconShapeSquare');
+            const shapeRounded = document.getElementById('iconShapeRounded');
+            const shapeCircle = document.getElementById('iconShapeCircle');
+
+            function selectIconShape(shape, activeBtn) {
+                [shapeSquare, shapeRounded, shapeCircle].forEach(b => {
+                    b.classList.remove('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-300');
+                    b.classList.add('border-slate-700', 'bg-slate-900', 'text-slate-300');
+                });
+                activeBtn.classList.remove('border-slate-700', 'bg-slate-900', 'text-slate-300');
+                activeBtn.classList.add('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-300');
+                params.icon.shape = shape;
+                render();
+            }
+
+            shapeSquare.addEventListener('click', () => selectIconShape('square', shapeSquare));
+            shapeRounded.addEventListener('click', () => selectIconShape('rounded', shapeRounded));
+            shapeCircle.addEventListener('click', () => selectIconShape('circle', shapeCircle));
+            document.getElementById('iconBgColor').addEventListener('input', (e) => {
+                params.icon.bgColor = e.target.value;
+                render();
+            });
+
+            // Thumbnail Controls
+            document.getElementById('thumbPreset').addEventListener('change', (e) => {
+                params.thumbnail.preset = e.target.value;
+                render();
+            });
+            document.getElementById('thumbTextTitle').addEventListener('input', (e) => {
+                params.thumbnail.title = e.target.value;
+                render();
+            });
+            document.getElementById('thumbTextColor').addEventListener('input', (e) => {
+                params.thumbnail.textColor = e.target.value;
+                render();
+            });
+            document.getElementById('thumbTextBg').addEventListener('input', (e) => {
+                params.thumbnail.textBg = e.target.value;
+                render();
+            });
+            document.getElementById('thumbTextPos').addEventListener('change', (e) => {
+                params.thumbnail.textPos = e.target.value;
+                render();
+            });
+
+            // Filter Sliders
+            ['Brightness', 'Contrast', 'Saturation'].forEach(filter => {
+                const slider = document.getElementById(`filter${filter}`);
+                slider.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    params.thumbnail[filter.toLowerCase()] = val;
+                    document.getElementById(`val${filter}`).innerText = `${val}%`;
+                    render();
+                });
+            });
+
+            // Sticker Controls
+            document.getElementById('stickerBorderWidth').addEventListener('input', (e) => {
+                params.sticker.borderWidth = parseInt(e.target.value);
+                document.getElementById('valStickerBorder').innerText = `${params.sticker.borderWidth}px`;
+                render();
+            });
+            document.getElementById('stickerBorderColor').addEventListener('input', (e) => {
+                params.sticker.borderColor = e.target.value;
+                render();
+            });
+            document.getElementById('stickerShadowDepth').addEventListener('input', (e) => {
+                params.sticker.shadowDepth = parseInt(e.target.value);
+                document.getElementById('valStickerShadow').innerText = `${params.sticker.shadowDepth}px`;
+                render();
+            });
+            document.getElementById('stickerRotation').addEventListener('input', (e) => {
+                params.sticker.rotation = parseInt(e.target.value);
+                document.getElementById('valStickerRotate').innerText = `${params.sticker.rotation}°`;
+                render();
+            });
+            document.getElementById('stickerBadgeText').addEventListener('input', (e) => {
+                params.sticker.badgeText = e.target.value;
+                render();
+            });
+
+            // Converter Controls
+            document.getElementById('exportFormat').addEventListener('change', (e) => {
+                params.converter.format = e.target.value;
+                render();
+            });
+            document.getElementById('exportQuality').addEventListener('input', (e) => {
+                params.converter.quality = e.target.value / 100;
+                document.getElementById('valQuality').innerText = `${e.target.value}%`;
+                render();
+            });
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            originalFileName = file.name.substring(0, file.name.lastIndexOf('.')) || 'image';
+            originalFileType = file.type;
+            originalFileSize = file.size;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    originalImage = img;
+                    
+                    // Set default dimensions
+                    params.resize.width = img.width;
+                    params.resize.height = img.height;
+                    document.getElementById('resizeWidth').value = img.width;
+                    document.getElementById('resizeHeight').value = img.height;
+
+                    // Update Info box
+                    document.getElementById('imageInfoBox').classList.remove('hidden');
+                    document.getElementById('infoDimensions').innerText = `${img.width} x ${img.height} px`;
+                    document.getElementById('infoFileSize').innerText = formatBytes(originalFileSize);
+                    document.getElementById('infoFileType').innerText = file.type.split('/')[1].toUpperCase();
+
+                    // Show Canvas
+                    emptyState.classList.add('hidden');
+                    mainCanvas.classList.remove('hidden');
+
+                    showToast('Foto berhasil dimuat!');
+                    render();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Demo sample image generator (Canvas generated gradient art)
+        function loadDemoImage() {
+            const demoCanvas = document.createElement('canvas');
+            demoCanvas.width = 1200;
+            demoCanvas.height = 800;
+            const dCtx = demoCanvas.getContext('2d');
+
+            // Draw creative gradient background
+            const grad = dCtx.createLinearGradient(0, 0, 1200, 800);
+            grad.addColorStop(0, '#4f46e5');
+            grad.addColorStop(0.5, '#7c3aed');
+            grad.addColorStop(1, '#db2777');
+            dCtx.fillStyle = grad;
+            dCtx.fillRect(0, 0, 1200, 800);
+
+            // Draw decorative shapes
+            dCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            dCtx.beginPath();
+            dCtx.arc(300, 200, 180, 0, Math.PI * 2);
+            dCtx.fill();
+
+            dCtx.beginPath();
+            dCtx.arc(950, 600, 250, 0, Math.PI * 2);
+            dCtx.fill();
+
+            // Draw Emoji Centerpiece
+            dCtx.font = '160px sans-serif';
+            dCtx.textAlign = 'center';
+            dCtx.textBaseline = 'middle';
+            dCtx.fillText('🚀', 600, 360);
+
+            // Text
+            dCtx.fillStyle = '#ffffff';
+            dCtx.font = 'bold 54px Inter, sans-serif';
+            dCtx.fillText('CONTOH FOTO SAMPEL', 600, 540);
+            
+            dCtx.font = '28px Inter, sans-serif';
+            dCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            dCtx.fillText('FotoCraft Studio Editor', 600, 600);
+
+            const img = new Image();
+            img.onload = function() {
+                originalImage = img;
+                originalFileName = 'foto-contoh';
+                originalFileType = 'image/png';
+                originalFileSize = 350000;
+
+                params.resize.width = img.width;
+                params.resize.height = img.height;
+                document.getElementById('resizeWidth').value = img.width;
+                document.getElementById('resizeHeight').value = img.height;
+
+                document.getElementById('imageInfoBox').classList.remove('hidden');
+                document.getElementById('infoDimensions').innerText = `${img.width} x ${img.height} px`;
+                document.getElementById('infoFileSize').innerText = formatBytes(originalFileSize);
+                document.getElementById('infoFileType').innerText = 'PNG';
+
+                emptyState.classList.add('hidden');
+                mainCanvas.classList.remove('hidden');
+
+                showToast('Foto contoh berhasil dimuat!');
+                render();
+            };
+            img.src = demoCanvas.toDataURL();
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            
+            // Highlight Tab Buttons
+            document.querySelectorAll('.tool-tab').forEach(b => {
+                b.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+                b.classList.add('text-slate-300', 'hover:bg-slate-700/60', 'hover:text-white');
+            });
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-700/60', 'hover:text-white');
+            activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+
+            // Show Panel
+            document.querySelectorAll('.tool-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`panel-${tab}`).classList.remove('hidden');
+
+            render();
+        }
+
+        function render() {
+            if (!originalImage) return;
+
+            if (activeTab === 'resizer') renderResizer();
+            else if (activeTab === 'icon') renderIcon();
+            else if (activeTab === 'thumbnail') renderThumbnail();
+            else if (activeTab === 'sticker') renderSticker();
+            else if (activeTab === 'converter') renderConverter();
+
+            // Update dimension badge
+            previewDimensions.innerText = `${mainCanvas.width} x ${mainCanvas.height} px`;
+
+            // Calculate estimated file size for converter tab
+            updateEstimateSize();
+        }
+
+        // TOOL 1: Resizer
+        function renderResizer() {
+            const w = params.resize.width || originalImage.width;
+            const h = params.resize.height || originalImage.height;
+
+            mainCanvas.width = w;
+            mainCanvas.height = h;
+
+            ctx.clearRect(0, 0, w, h);
+
+            if (params.resize.fitMode === 'stretch') {
+                ctx.drawImage(originalImage, 0, 0, w, h);
+            } else if (params.resize.fitMode === 'contain') {
+                const scale = Math.min(w / originalImage.width, h / originalImage.height);
+                const nw = originalImage.width * scale;
+                const nh = originalImage.height * scale;
+                const dx = (w - nw) / 2;
+                const dy = (h - nh) / 2;
+                ctx.drawImage(originalImage, dx, dy, nw, nh);
+            } else if (params.resize.fitMode === 'cover') {
+                const scale = Math.max(w / originalImage.width, h / originalImage.height);
+                const nw = originalImage.width * scale;
+                const nh = originalImage.height * scale;
+                const dx = (w - nw) / 2;
+                const dy = (h - nh) / 2;
+                ctx.drawImage(originalImage, dx, dy, nw, nh);
+            }
+        }
+
+        // TOOL 2: Icon Generator
+        function renderIcon() {
+            const size = params.icon.size;
+            mainCanvas.width = size;
+            mainCanvas.height = size;
+
+            ctx.clearRect(0, 0, size, size);
+
+            // Shape path
+            ctx.save();
+            ctx.beginPath();
+            if (params.icon.shape === 'circle') {
+                ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+            } else if (params.icon.shape === 'rounded') {
+                const radius = size * 0.2;
+                ctx.roundRect(0, 0, size, size, radius);
+            } else {
+                ctx.rect(0, 0, size, size);
+            }
+            ctx.clip();
+
+            // Background Fill
+            ctx.fillStyle = params.icon.bgColor;
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw image cropped cover
+            const scale = Math.max(size / originalImage.width, size / originalImage.height);
+            const nw = originalImage.width * scale;
+            const nh = originalImage.height * scale;
+            const dx = (size - nw) / 2;
+            const dy = (size - nh) / 2;
+
+            ctx.drawImage(originalImage, dx, dy, nw, nh);
+            ctx.restore();
+        }
+
+        // TOOL 3: Thumbnail Maker
+        function renderThumbnail() {
+            const [w, h] = params.thumbnail.preset.split('x').map(Number);
+            mainCanvas.width = w;
+            mainCanvas.height = h;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw filtered image
+            ctx.save();
+            ctx.filter = `brightness(${params.thumbnail.brightness}%) contrast(${params.thumbnail.contrast}%) saturate(${params.thumbnail.saturation}%)`;
+            
+            // Cover crop
+            const scale = Math.max(w / originalImage.width, h / originalImage.height);
+            const nw = originalImage.width * scale;
+            const nh = originalImage.height * scale;
+            const dx = (w - nw) / 2;
+            const dy = (h - nh) / 2;
+            ctx.drawImage(originalImage, dx, dy, nw, nh);
+            ctx.restore();
+
+            // Text Overlay
+            const title = params.thumbnail.title;
+            if (title.trim().length > 0) {
+                const fontSize = Math.round(w * 0.045);
+                ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+                
+                const textWidth = ctx.measureText(title).width;
+                const padding = fontSize * 0.6;
+                const boxWidth = textWidth + (padding * 2);
+                const boxHeight = fontSize * 1.6;
+
+                let boxX = (w - boxWidth) / 2;
+                let boxY = h - boxHeight - (h * 0.08);
+
+                if (params.thumbnail.textPos === 'top') {
+                    boxY = h * 0.08;
+                } else if (params.thumbnail.textPos === 'center') {
+                    boxY = (h - boxHeight) / 2;
+                }
+
+                // Draw Text Banner Card
+                ctx.fillStyle = params.thumbnail.textBg;
+                ctx.shadowColor = 'rgba(0,0,0,0.4)';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 12);
+                ctx.fill();
+                ctx.shadowBlur = 0; // reset
+
+                // Draw Text
+                ctx.fillStyle = params.thumbnail.textColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(title, w / 2, boxY + (boxHeight / 2));
+            }
+        }
+
+        // TOOL 4: Sticker Maker
+        function renderSticker() {
+            // Give extra padding around sticker canvas
+            const padding = 120;
+            const w = originalImage.width + padding;
+            const h = originalImage.height + padding;
+
+            mainCanvas.width = w;
+            mainCanvas.height = h;
+
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.save();
+            // Center & Rotate Canvas
+            ctx.translate(w / 2, h / 2);
+            ctx.rotate((params.sticker.rotation * Math.PI) / 180);
+
+            const imgX = -originalImage.width / 2;
+            const imgY = -originalImage.height / 2;
+            const imgW = originalImage.width;
+            const imgH = originalImage.height;
+
+            // Step A: Draw Drop Shadow
+            if (params.sticker.shadowDepth > 0) {
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+                ctx.shadowBlur = params.sticker.shadowDepth * 1.5;
+                ctx.shadowOffsetY = params.sticker.shadowDepth;
+                ctx.fillStyle = params.sticker.borderColor;
+                
+                // Draw rounded back card for sticker border
+                const bw = params.sticker.borderWidth;
+                ctx.beginPath();
+                ctx.roundRect(imgX - bw, imgY - bw, imgW + (bw * 2), imgH + (bw * 2), 24);
+                ctx.fill();
+                ctx.restore();
+            } else {
+                // Regular border back card
+                const bw = params.sticker.borderWidth;
+                ctx.fillStyle = params.sticker.borderColor;
+                ctx.beginPath();
+                ctx.roundRect(imgX - bw, imgY - bw, imgW + (bw * 2), imgH + (bw * 2), 24);
+                ctx.fill();
+            }
+
+            // Step B: Draw Image
+            ctx.drawImage(originalImage, imgX, imgY, imgW, imgH);
+
+            // Step C: Draw Sticker Badge
+            const badgeText = params.sticker.badgeText;
+            if (badgeText.trim().length > 0) {
+                const bSize = Math.max(24, Math.round(imgW * 0.08));
+                ctx.font = `900 ${bSize}px Inter, sans-serif`;
+                
+                const bWidth = ctx.measureText(badgeText).width + (bSize * 0.8);
+                const bHeight = bSize * 1.5;
+
+                const bx = (imgW / 2) - (bWidth / 3);
+                const by = (-imgH / 2) - (bHeight / 3);
+
+                // Badge Shadow
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 8;
+
+                // Badge background
+                ctx.fillStyle = '#ec4899'; // Pink badge
+                ctx.beginPath();
+                ctx.roundRect(bx, by, bWidth, bHeight, 50);
+                ctx.fill();
+
+                // Badge outline
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Badge text
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(badgeText, bx + (bWidth / 2), by + (bHeight / 2));
+            }
+
+            ctx.restore();
+        }
+
+        // TOOL 5: Converter
+        function renderConverter() {
+            // Draw image directly at native or resized dimensions
+            mainCanvas.width = originalImage.width;
+            mainCanvas.height = originalImage.height;
+
+            ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+            ctx.drawImage(originalImage, 0, 0);
+        }
+
+        function updateEstimateSize() {
+            if (!originalImage) return;
+            
+            let format = params.converter.format;
+            let quality = params.converter.quality;
+
+            if (activeTab !== 'converter') {
+                format = 'image/png';
+                quality = 0.9;
+            }
+
+            mainCanvas.toBlob((blob) => {
+                if (blob) {
+                    document.getElementById('estFileSize').innerText = formatBytes(blob.size);
+                }
+            }, format, quality);
+        }
+
+        function downloadResult() {
+            if (!originalImage) {
+                showToast('Silakan unggah foto terlebih dahulu!', 'error');
+                return;
+            }
+
+            let format = 'image/png';
+            let quality = 0.9;
+            let extension = 'png';
+
+            if (activeTab === 'converter') {
+                format = params.converter.format;
+                quality = params.converter.quality;
+                extension = format.split('/')[1];
+            } else if (activeTab === 'icon') {
+                extension = 'png';
+            } else if (activeTab === 'thumbnail') {
+                extension = 'jpg';
+                format = 'image/jpeg';
+            }
+
+            const fileName = `${originalFileName}_${activeTab}_${Date.now()}.${extension}`;
+
+            mainCanvas.toBlob((blob) => {
+                if (!blob) return;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showToast(`Foto berhasil diunduh (${extension.toUpperCase()})!`);
+            }, format, quality);
+        }
+
+        // Format Byte helper
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        // Toast Notification System
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = msg;
+            if (type === 'error') {
+                toastIcon.className = 'fa-solid fa-circle-exclamation text-rose-400 text-lg';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400 text-lg';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
