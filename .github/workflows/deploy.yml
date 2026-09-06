@@ -22,24 +22,64 @@ jobs:
           
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        
+        with:
+          api-level: 33
+          build-tools: 33.0.0
+          
       - name: Install Capacitor
         run: |
           npm install -g @capacitor/cli@4.7.0
           npm install @capacitor/core@4.7.0 @capacitor/android@4.7.0
       
-      - name: Build APK
+      - name: Prepare Files
         run: |
           mkdir -p www
-          cp *.html www/index.html 2>/dev/null || echo "No HTML"
-          echo '{"appId":"com.fotocraft.studio","appName":"FotoCraft","webDir":"www"}' > capacitor.config.json
+          if [ -f "index.html" ]; then
+            cp index.html www/
+            echo "✅ index.html copied"
+          else
+            echo "❌ index.html not found!"
+            exit 1
+          fi
+          ls -la www/
+      
+      - name: Create Config
+        run: |
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "com.fotocraft.studio",
+            "appName": "FotoCraft",
+            "webDir": "www",
+            "bundledWebRuntime": false
+          }
+          EOF
+          cat capacitor.config.json
+      
+      - name: Initialize Capacitor
+        run: |
           npx cap init FotoCraft com.fotocraft.studio --web-dir=www
           npx cap add android
-          npx cap sync android
-          cd android && chmod +x gradlew && ./gradlew assembleRelease
+      
+      - name: Sync Capacitor
+        run: npx cap sync android
+        
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --info
+          
+      - name: Cek APK
+        run: |
+          echo "📁 Mencari APK..."
+          find android -name "*.apk" -type f
+          echo "📁 Isi folder build:"
+          ls -la android/app/build/outputs/apk/ || echo "Folder tidak ditemukan"
+          ls -la android/app/build/outputs/apk/release/ || echo "Folder release tidak ditemukan"
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FotoCraft-APK
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
