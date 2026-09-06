@@ -2,7 +2,6 @@ name: Build APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
   build:
@@ -13,30 +12,26 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           
-      - name: Setup Java 21
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
           
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          api-level: 33
-          build-tools: 33.0.0
-          cmake: 3.22.1
-          
+        
       - name: Install Capacitor
         run: |
-          npm install -g @capacitor/cli
-          npm install @capacitor/core @capacitor/android
+          npm install -g @capacitor/cli@4.7.0
+          npm install @capacitor/core@4.7.0 @capacitor/android@4.7.0
       
       - name: Build APK
         run: |
           mkdir -p www
-          cp *.html www/index.html 2>/dev/null || echo "No HTML found"
+          cp *.html www/index.html 2>/dev/null || echo "No HTML"
           echo '{"appId":"com.fotocraft.studio","appName":"FotoCraft","webDir":"www"}' > capacitor.config.json
           npx cap init FotoCraft com.fotocraft.studio --web-dir=www
           npx cap add android
