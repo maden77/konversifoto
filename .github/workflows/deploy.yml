@@ -26,17 +26,24 @@ jobs:
           npm install -g @capacitor/cli
           npm install @capacitor/core @capacitor/android
       
-      - name: Build
+      - name: Build APK
         run: |
+          # Buat folder www
           mkdir -p www
+          
+          # Copy HTML ke www
           cp *.html www/index.html 2>/dev/null || echo "No HTML"
+          
+          # Buat config
           echo '{"appId":"com.fotocraft.studio","appName":"FotoCraft","webDir":"www"}' > capacitor.config.json
+          
+          # Build APK
           npx cap init FotoCraft com.fotocraft.studio --web-dir=www
           npx cap add android
           npx cap sync android
           cd android && chmod +x gradlew && ./gradlew assembleRelease
       
-      - name: Upload
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FotoCraft-APK
