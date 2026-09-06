@@ -1,41 +1,111 @@
-name: foto konvers
+name: Build APK from HTML
+
 on:
-  release:
-    types: [created]
-  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:  # Bisa dijalankan manual
 
 jobs:
-  build-android:
+  build-apk:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
+      # 1. Checkout kode
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+      
+      # 3. Setup Java (wajib untuk Android build)
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
+      
+      # 4. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
+        with:
+          api-level: 33
+          build-tools: 33.0.0
+      
+      # 5. Install Capacitor
       - name: Install Capacitor
         run: |
           npm install -g @capacitor/cli
           npm install @capacitor/core @capacitor/android
-      - name: Build Android
+          npm install @capacitor/filesystem @capacitor/share
+      
+      # 6. Buat config Capacitor
+      - name: Create Capacitor config
+        run: |
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "com.fotocraft.studio",
+            "appName": "FotoCraft Studio",
+            "webDir": ".",
+            "bundledWebRuntime": false,
+            "server": {
+              "androidScheme": "https"
+            },
+            "android": {
+              "allowMixedContent": true,
+              "webContentsDebuggingEnabled": true
+            }
+          }
+          EOF
+      
+      # 7. Inisialisasi Capacitor
+      - name: Initialize Capacitor
         run: |
           npx cap init FotoCraft Studio com.fotocraft.studio --web-dir=.
           npx cap add android
-          npx cap sync android
+      
+      # 8. Sync files
+      - name: Sync Capacitor
+        run: npx cap sync android
+      
+      # 9. Build APK
+      - name: Build APK
+        run: |
           cd android
+          chmod +x gradlew
           ./gradlew assembleRelease
-          ./gradlew bundleRelease
-      - name: Upload Artifacts
+      
+      # 10. Upload APK ke artifacts
+      - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
-          name: android-builds
-          path: |
-            android/app/build/outputs/apk/release/*.apk
-            android/app/build/outputs/bundle/release/*.aab
+          name: FotoCraft-Studio-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+      
+      # 11. Upload ke release (jika push ke main)
+      - name: Create Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+          tag_name: v${{ github.run_number }}
+          name: FotoCraft Studio v${{ github.run_number }}
+          draft: false
+          prerelease: false
+          body: |
+            ## 🎉 FotoCraft Studio APK
+            
+            **Version:** ${{ github.run_number }}
+            **Build Date:** $(date)
+            
+            ### ✨ Features:
+            - Ukuran Kustom (Resize)
+            - Ubah ke Icon
+            - Buat Thumbnail
+            - Buat Stiker
+            - Format & Kompresi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
