@@ -1,9 +1,13 @@
 name: Build APK
-on: workflow_dispatch
+on: 
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
       
@@ -26,20 +30,30 @@ jobs:
           npm install -g @capacitor/cli
           npm install @capacitor/core @capacitor/android
       
-      - name: Prepare Files
+      - name: Prepare Web Files
         run: |
           # Buat folder www
           mkdir -p www
           
-          # Cari file HTML pertama
-          HTML_FILE=$(ls *.html 2>/dev/null | head -1)
+          # Copy semua file HTML ke www
+          cp *.html www/ 2>/dev/null || echo "No HTML files found"
           
-          if [ -n "$HTML_FILE" ]; then
-            # Copy ke www sebagai index.html
-            cp "$HTML_FILE" www/index.html
-            echo "✅ Copied $HTML_FILE to www/index.html"
+          # Periksa apakah ada file HTML di www
+          if ls www/*.html 1> /dev/null 2>&1; then
+            # Jika ada file index.html, biarkan saja
+            if [ -f "www/index.html" ]; then
+              echo "✅ index.html already exists"
+            else
+              # Rename file HTML pertama ke index.html
+              FIRST_HTML=$(ls www/*.html | head -1)
+              # Cek apakah file tersebut bukan index.html
+              if [ "$FIRST_HTML" != "www/index.html" ]; then
+                mv "$FIRST_HTML" www/index.html
+                echo "✅ Renamed to index.html"
+              fi
+            fi
           else
-            echo "❌ No HTML file found!"
+            echo "❌ No HTML files found!"
             exit 1
           fi
           
@@ -52,16 +66,32 @@ jobs:
           echo "📁 Files in www:"
           ls -la www/
       
-      - name: Create Config
+      - name: Create Capacitor Config
         run: |
-          echo '{"appId":"com.fotocraft.studio","appName":"FotoCraft","webDir":"www","bundledWebRuntime":false}' > capacitor.config.json
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "com.fotocraft.studio",
+            "appName": "FotoCraft Studio",
+            "webDir": "www",
+            "bundledWebRuntime": false
+          }
+          EOF
+          
+          echo "✅ capacitor.config.json created"
       
-      - name: Build
+      - name: Initialize Capacitor
         run: |
-          npx cap init FotoCraft com.fotocraft.studio --web-dir=www
+          npx cap init FotoCraft Studio com.fotocraft.studio --web-dir=www
           npx cap add android
-          npx cap sync android
-          cd android && chmod +x gradlew && ./gradlew assembleRelease
+      
+      - name: Sync Capacitor
+        run: npx cap sync android
+        
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
