@@ -1,5 +1,5 @@
 name: Build APK
-on: workflow
+on: workflow_dispatch
 
 jobs:
   build:
@@ -20,11 +20,7 @@ jobs:
           
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          api-level: 33
-          build-tools: 33.0.0
-          cmake: 3.22.1
-          
+        
       - name: Install Capacitor
         run: |
           npm install -g @capacitor/cli
@@ -33,7 +29,7 @@ jobs:
       - name: Build APK
         run: |
           mkdir -p www
-          cp *.html www/index.html 2>/dev/null || echo "No HTML found"
+          cp *.html www/index.html 2>/dev/null || echo "No HTML"
           echo '{"appId":"com.fotocraft.studio","appName":"FotoCraft","webDir":"www"}' > capacitor.config.json
           npx cap init FotoCraft com.fotocraft.studio --web-dir=www
           npx cap add android
