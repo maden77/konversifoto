@@ -77,11 +77,11 @@ jobs:
           find android -name "*.apk" -type f
           echo "📁 Isi folder build:"
           ls -la android/app/build/outputs/apk/ || echo "Folder tidak ditemukan"
-          ls -la android/app/build/outputs/apk/release/ || echo "Folder release tidak ditemukan"
+          ls -la android/app/build/outputs/apk/debug/ || echo "Folder release tidak ditemukan"
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FotoCraft-APK
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
